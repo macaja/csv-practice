@@ -5,8 +5,6 @@ import myob.exercise.infrastructure.file.EmployeeDTO
 
 import scala.util.Try
 
-case class Date(day: Int, month: String)
-
 case class Employee(
     name: String,
     paymentRankDates: String,

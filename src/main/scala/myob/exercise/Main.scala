@@ -9,25 +9,19 @@ import myob.exercise.infrastructure.file.EmployeeDTO
 import scala.io.Source
 
 object Main extends App with EmployeeServices {
+  import myob.exercise.infrastructure.encoder.Parsers._
 
-  def write(employeePaySlip: String) = {
-    val file = new File("src/main/resources/employeesPaySlip")
-    val fos = new FileOutputStream(file)
-    val bw = new BufferedWriter(new OutputStreamWriter(fos))
-    println(s"Info to write: ${employeePaySlip}")
-    bw.write(employeePaySlip)
-    bw.newLine()
-  }
+  val file = new File("src/main/resources/employeesPaySlip.csv")
+  val bw = new BufferedWriter(new FileWriter(file))
 
-  val s: Unit = {
-    import myob.exercise.infrastructure.encoder.Parsers._
+  def processRecords(): Unit = {
     Source
       .fromFile("src/main/resources/employeesGrossIncome.csv")
       .getLines()
       .foreach(
-        dto =>
+        record =>
           Parser
-            .parse[EmployeeDTO](dto)
+            .parse[EmployeeDTO](record)
             .fold(
               re => println(s"Parsing error: ${re.msg}"),
               dto =>
@@ -35,11 +29,12 @@ object Main extends App with EmployeeServices {
                   de => println(s"Domain Error: ${de.message}"), {
                     import myob.exercise.infrastructure.encoder.CSVs._
                     import cats.instances.all._
-                    employee => write(CSV.to(employee))
+                    employee => bw.write(s"${CSV.to(employee)}\n")
                   }
                 )
             )
       )
   }
-
+  processRecords()
+  bw.close()
 }

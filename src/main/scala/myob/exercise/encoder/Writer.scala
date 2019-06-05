@@ -1,4 +1,4 @@
-package myob.exercise.infrastructure.encoder
+package myob.exercise.encoder
 
 import cats.{Foldable, Show}
 import shapeless.{::, HList, HNil, ProductTypeClass, ProductTypeClassCompanion}

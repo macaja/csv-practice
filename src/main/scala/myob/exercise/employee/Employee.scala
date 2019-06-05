@@ -1,23 +1,26 @@
 package myob.exercise.employee
 
 import cats.syntax.either._
-import myob.exercise.infrastructure.file.EmployeeDTO
+import myob.exercise.EmployeeDTO
+import cats.data.Validated._
 
 import scala.util.Try
 
-case class Employee(
+final case class Employee(
     name: String,
     paymentRankDates: String,
-    grossIncome: Long,
-    incomeTax: Long,
-    netIncome: Long,
-    superValue: Long
+    grossIncome: Int,
+    incomeTax: Int,
+    netIncome: Int,
+    superValue: Int
 )
 
 object Employee {
-  def validate(dto: EmployeeDTO): DomainError Either Employee =
+  def validateAndCalculateDeductions(dto: EmployeeDTO): DomainError Either Employee =
     for {
-      salary <- validatePositiveLong(dto.annualSalary)
+      fn <- validateEmptyString("First name",dto.firstName)
+      ln <- validateEmptyString("Last name", dto.lastName)
+      salary <- validatePositiveInt(dto.annualSalary)
       superRate <- convertSuperRate(dto.superRate)
       grossIncome <- calculateGrossIncome(salary).asRight
       incomeTax <- calculateIncomeTax(salary).asRight
@@ -25,7 +28,7 @@ object Employee {
       superValue <- calculateSuperValue(grossIncome, superRate).asRight
     } yield
       Employee(
-        s"${dto.firstName} ${dto.lastName}",
+        s"$fn $ln",
         dto.paymentRankDates,
         grossIncome,
         incomeTax,
@@ -33,9 +36,9 @@ object Employee {
         superValue
       )
 
-  private def validatePositiveLong(salary: Long): DomainError Either Long =
+  private def validatePositiveInt(salary: Int): DomainError Either Int =
     if (salary <= 0) NegativeLongValue("Annual salary is negative").asLeft
-    else (salary).asRight
+    else salary.asRight
 
   private def convertSuperRate(rate: String): DomainError Either Double =
     for {
@@ -43,29 +46,40 @@ object Employee {
       v <- validateSuperRateRank(d)
     } yield v / 100
 
-  private def calculateGrossIncome(annualSalary: Long): Long =
+  private def calculateGrossIncome(annualSalary: Int): Int =
     Math.round(annualSalary / 12)
 
-  private def calculateIncomeTax(annualSalary: Long): Long =
-    annualSalary match {
-      case x if (x <= 18200) => 0
-      case x if (x > 18200 && x <= 37000) =>
-        Math.round(((annualSalary - 18200) * 0.19) / 12)
-      case x if (x > 37000 && x <= 87000) =>
-        Math.round((3572 + ((annualSalary - 37000) * 0.325)) / 12)
-      case x if (x > 87000 && x <= 180000) =>
-        Math.round((19822 + ((annualSalary - 87000) * 0.37)) / 12)
-      case x if (x > 180000) =>
-        Math.round((54232 + ((annualSalary - 180000) * 0.45)) / 12)
+  private def calculateIncomeTax(annualSalary: Int): Int = {
+    val a = if (annualSalary <= 18200) true else false
+    val b = if (annualSalary > 18200) true else false
+    val c = if (annualSalary <= 37000) true else false
+    val d = if (annualSalary > 37000) true else false
+    val e = if (annualSalary <= 87000) true else false
+    val f = if (annualSalary > 87000) true else false
+    val g = if (annualSalary <= 180000) true else false
+    val h = if (annualSalary > 180000) true else false
+    val ranks: (Boolean, Boolean, Boolean, Boolean, Boolean) =
+      (a, (b && c), (d && e), (f && g), h)
+    ranks match {
+      case (true, false, false, false, false) => 0
+      case (false, true, false, false, false) =>
+        Math.round(((annualSalary - 18200) * 0.19) / 12).toInt
+      case (false, false, true, false, false) =>
+        Math.round((3572 + ((annualSalary - 37000) * 0.325)) / 12).toInt
+      case (false, false, false, true, false) =>
+        Math.round((19822 + ((annualSalary - 87000) * 0.37)) / 12).toInt
+      case _ =>
+        Math.round((54232 + ((annualSalary - 180000) * 0.45)) / 12).toInt
     }
+  }
 
-  private def calculateNetIncome(grossIncome: Long, incomeTax: Long): Long =
+  private def calculateNetIncome(grossIncome: Int, incomeTax: Int): Int =
     grossIncome - incomeTax
 
-  private def calculateSuperValue(grossIncome: Long, superRate: Double): Long =
-    Math.round(grossIncome * superRate)
+  private def calculateSuperValue(grossIncome: Int, superRate: Double): Int =
+    Math.round(grossIncome * superRate).toInt
 
-  private[this] def deleteSuperRatePercentageSymbol(
+  private def deleteSuperRatePercentageSymbol(
       s: String
   ): DomainError Either Double =
     Try(s.replace("%", "").toDouble).toEither.leftMap(
@@ -75,9 +89,11 @@ object Employee {
         )
     )
 
-  private[this] def validateSuperRateRank(
+  private def validateSuperRateRank(
       value: Double
   ): DomainError Either Double =
-    if (value < 0 || value > 100) SuperRateOutOfRank().asLeft else value.asRight
+    if (value < 0 || value >= 50) SuperRateOutOfRank().asLeft else value.asRight
 
+  private def validateEmptyString(field: String, value: String): DomainError Either String =
+    if(value.isEmpty) EmptyString(s"$field is empty").asLeft else value.asRight
 }

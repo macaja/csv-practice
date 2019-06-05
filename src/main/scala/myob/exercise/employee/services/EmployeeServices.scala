@@ -1,13 +1,11 @@
 package myob.exercise.employee.services
 
+import myob.exercise.EmployeeDTO
 import myob.exercise.employee.{DomainError, Employee}
-import myob.exercise.infrastructure.file.EmployeeDTO
 
-trait EmployeeServices {
+object EmployeeServices {
 
   def calculatePaySlip(dto: EmployeeDTO): DomainError Either Employee =
-    for {
-      employee <- Employee.validate(dto)
-    } yield employee
+    Employee.validateAndCalculateDeductions(dto)
 
 }

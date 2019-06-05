@@ -2,8 +2,8 @@ import Dependencies._
 
 ThisBuild / scalaVersion     := "2.12.8"
 ThisBuild / version          := "0.1.0-SNAPSHOT"
-ThisBuild / organization     := "MauricioCardonaJaramillo"
-ThisBuild / organizationName := "macaja"
+ThisBuild / organization     := "myob.example.employees"
+ThisBuild / organizationName := "example"
 
 lazy val myobExercise = (project in file("."))
   .settings(
@@ -11,6 +11,10 @@ lazy val myobExercise = (project in file("."))
     libraryDependencies ++= Seq(
       shapeless,
       cats,
+      osLib,
+      logBack,
+      scalaLogging,
+      scalaCheck % Test,
       scalaTest % Test
     ),
     scalacOptions ++= Seq(
@@ -51,7 +55,6 @@ lazy val myobExercise = (project in file("."))
       "-Ywarn-infer-any",
       "-Ywarn-nullary-override",
       "-Ywarn-nullary-unit",
-     // "-Ywarn-numeric-widen",
       "-Ywarn-unused:implicits",
       "-Ywarn-unused:imports",
       "-Ywarn-unused:locals",
@@ -67,4 +70,3 @@ lazy val myobExercise = (project in file("."))
   )
 
 scalafmtOnCompile in ThisBuild := true
-// See https://www.scala-sbt.org/1.x/docs/Using-Sonatype.html for instructions on how to publish to Sonatype.

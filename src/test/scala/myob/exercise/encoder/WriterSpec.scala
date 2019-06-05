@@ -1,10 +1,10 @@
-package myob.exercise.infrastructure.encoder
+package myob.exercise.encoder
 
 import org.scalatest.{FlatSpec, Matchers}
 
 class WriterSpec extends FlatSpec with Matchers {
 
-  import myob.exercise.infrastructure.encoder.CSVs._
+  import myob.exercise.encoder.CSVs._
   import cats.instances.all._
   "Writer" should "transform any case class into a csv" in {
     case class CSVTrans(name: String, value: Int, b: Boolean)

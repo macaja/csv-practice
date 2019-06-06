@@ -2,7 +2,6 @@ package myob.exercise.employee
 
 import cats.syntax.either._
 import myob.exercise.EmployeeDTO
-import cats.data.Validated._
 
 import scala.util.Try
 
@@ -16,9 +15,11 @@ final case class Employee(
 )
 
 object Employee {
-  def validateAndCalculateDeductions(dto: EmployeeDTO): DomainError Either Employee =
+  def validateAndCalculatePaySlip(
+      dto: EmployeeDTO
+  ): DomainError Either Employee =
     for {
-      fn <- validateEmptyString("First name",dto.firstName)
+      fn <- validateEmptyString("First name", dto.firstName)
       ln <- validateEmptyString("Last name", dto.lastName)
       salary <- validatePositiveInt(dto.annualSalary)
       superRate <- convertSuperRate(dto.superRate)
@@ -92,8 +93,11 @@ object Employee {
   private def validateSuperRateRank(
       value: Double
   ): DomainError Either Double =
-    if (value < 0 || value >= 50) SuperRateOutOfRank().asLeft else value.asRight
+    if (value < 0 || value > 50) SuperRateOutOfRank().asLeft else value.asRight
 
-  private def validateEmptyString(field: String, value: String): DomainError Either String =
-    if(value.isEmpty) EmptyString(s"$field is empty").asLeft else value.asRight
+  private def validateEmptyString(
+      field: String,
+      value: String
+  ): DomainError Either String =
+    if (value.isEmpty) EmptyString(s"$field is empty").asLeft else value.asRight
 }

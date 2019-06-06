@@ -2,12 +2,22 @@ import Dependencies._
 
 ThisBuild / scalaVersion     := "2.12.8"
 ThisBuild / version          := "0.1.0-SNAPSHOT"
-ThisBuild / organization     := "myob.example.employees"
-ThisBuild / organizationName := "example"
+ThisBuild / organization     := "myob.exercise.employees"
+ThisBuild / organizationName := "exercise"
+
+ThisBuild / developers := List(
+  Developer(
+    id    = "macaja",
+    name  = "Mauricio Cardona Jaramillo",
+    email = "cardonajaramillomauricio@gmail.com",
+    url   = url("https://github.com/macaja")
+  )
+)
 
 lazy val myobExercise = (project in file("."))
   .settings(
     name := "myob-exercise",
+    addCompilerPlugin(scalafixSemanticdb),
     libraryDependencies ++= Seq(
       shapeless,
       cats,
@@ -61,7 +71,8 @@ lazy val myobExercise = (project in file("."))
       "-Ywarn-unused:params",
       "-Ywarn-unused:patvars",
       "-Ywarn-unused:privates",
-      "-Ywarn-value-discard"
+      "-Ywarn-value-discard",
+      "-Yrangepos"
     ),
     scalacOptions in (Compile, console) ~= (_.filterNot(Set(
       "-Ywarn-unused:imports",

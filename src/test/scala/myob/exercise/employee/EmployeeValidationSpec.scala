@@ -35,4 +35,20 @@ class EmployeeValidationSpec extends Properties("Employee") {
       Employee.validateAndCalculatePaySlip(dto).isLeft
     }
 
+  property(
+    "Employee validation failed due to missing percentage symbol on superRate field"
+  ) = forAll {
+    dtoWithoutPercentageSymboltoSuperRate
+  } { dto: EmployeeDTO =>
+    Employee.validateAndCalculatePaySlip(dto).isLeft
+  }
+
+  property(
+    "Employee validation failed due to super rate out od range"
+  ) = forAll {
+    dtoWithSuperOutOfRange
+  } { dto: EmployeeDTO =>
+    Employee.validateAndCalculatePaySlip(dto).isLeft
+  }
+
 }

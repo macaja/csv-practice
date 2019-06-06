@@ -17,7 +17,8 @@ final case class Employee(
 object Employee {
   def validateAndCalculatePaySlip(
       dto: EmployeeDTO
-  ): DomainError Either Employee =
+  ): DomainError Either Employee = {
+    println(s"CHECKING: $dto")
     for {
       fn <- validateEmptyString("First name", dto.firstName)
       ln <- validateEmptyString("Last name", dto.lastName)
@@ -36,6 +37,7 @@ object Employee {
         netIncome,
         superValue
       )
+  }
 
   private def validatePositiveInt(salary: Int): DomainError Either Int =
     if (salary <= 0) NegativeLongValue("Annual salary is negative").asLeft
@@ -43,7 +45,7 @@ object Employee {
 
   private def convertSuperRate(rate: String): DomainError Either Double =
     for {
-      d <- deleteSuperRatePercentageSymbol(rate)
+      d <- checkAndDeletePercentage(rate)
       v <- validateSuperRateRank(d)
     } yield v / 100
 
@@ -80,15 +82,18 @@ object Employee {
   private def calculateSuperValue(grossIncome: Int, superRate: Double): Int =
     Math.round(grossIncome * superRate).toInt
 
-  private def deleteSuperRatePercentageSymbol(
+  private def checkAndDeletePercentage(
       s: String
-  ): DomainError Either Double =
-    Try(s.replace("%", "").toDouble).toEither.leftMap(
-      thr =>
-        InvalidRateValue(
-          s"rate impossible to transform into Double due to: ${thr.toString}"
-        )
-    )
+  ): DomainError Either Double = {
+    if (s matches ("[0-9]+%"))
+      Try(s.replace("%", "").toDouble).toEither.leftMap(
+        thr =>
+          InvalidRateValue(
+            s"rate impossible to transform into Double due to: ${thr.toString}"
+          )
+      )
+    else SuperRateWithoutPercentageSymbol().asLeft
+  }
 
   private def validateSuperRateRank(
       value: Double

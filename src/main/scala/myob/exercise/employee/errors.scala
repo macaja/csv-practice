@@ -6,6 +6,9 @@ sealed trait DomainError {
 
 final case class EmptyString(message: String) extends DomainError
 final case class NegativeLongValue(message: String) extends DomainError
+final case class SuperRateWithoutPercentageSymbol(
+    message: String = "Super rate came with percentage symbol"
+) extends DomainError
 final case class InvalidRateValue(message: String) extends DomainError
 final case class SuperRateOutOfRank(
     message: String = "The value of the super is out of rank"
